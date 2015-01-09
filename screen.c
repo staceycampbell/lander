@@ -49,12 +49,7 @@ int PadScore[MAX_PADS] = { 30, 30, 15, 20, 50, 10, 15, 25 };
 
 int LastLegalY, LastLegalX;
 
-#ifdef BSD
-typedef char chtype_port_t;
-#else
 typedef chtype chtype_port_t;
-#endif
-
 static chtype_port_t LineMap[128] = { 0 };
 
 static int Old_Y, Old_X;
@@ -83,9 +78,6 @@ Introduction(WINDOW *screen)
 	CENTRE(screen, 14, L6);
 	CENTRE(screen, 18, L8);
 	CENTRE(screen, 20, L7);
-#ifdef BSD
-	wrefresh(screen);
-#endif
 	while (wgetch(screen) != ' ');
 }
 
@@ -210,11 +202,7 @@ MoveLander(WINDOW *screen, double land_y, double land_x)
 		if (new_legal)
 		{
 			screen_y = SCR_ADJ(y);
-#ifdef BSD
-			ALT_ADD(screen, screen_y, x, '$');
-#else
 			ALT_ADD(screen, screen_y, x, ACS_TTEE);
-#endif
 			wmove(screen, screen_y, x);
 			LastLegalY = y;
 			LastLegalX = x;
@@ -237,35 +225,3 @@ MoveLander(WINDOW *screen, double land_y, double land_x)
 		return CRASH;
 	return FLYING;
 }
-
-#ifdef BSD
-
-int
-flash()
-{
-	putchar(7);
-}
-
-#ifndef FNDELAY
-#define FNDELAY O_NDELAY
-#endif
-
-int
-nodelay(WINDOW *win, int flag)
-{
-	int res;
-
-	res = fcntl(fileno(stdin), F_GETFL, 0);
-	if (flag)
-	{
-		res |= FNDELAY;
-		fcntl(fileno(stdin), F_SETFL, res);
-	}
-	else
-	{
-		res &= ~FNDELAY;
-		fcntl(fileno(stdin), F_SETFL, res);
-	}
-	return 0;
-}
-#endif

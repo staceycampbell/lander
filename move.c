@@ -6,12 +6,7 @@
 #include "consts.h"
 #include "funcs.h"
 
-#if defined(BSD) && ! defined(O_NDELAY)
-#define NO_INP -1
-#else
 #define NO_INP EOF
-#endif
-
 #define FABS_M(x) ((x) >= -1.0 ? 1.0 : -(x))
 #define FUEL_INIT 5000.0
 #define FUEL_DRAIN 450.0
@@ -50,9 +45,6 @@ GetMove(WINDOW *screen, double *y_delta, double *x_delta)
 		wrefresh(screen);
 		while ((ch = wgetch(screen)) != NO_INP)
 		{
-#ifdef BSD
-			ch &= 0x7F;
-#endif
 			if (isdigit(ch))
 			{
 				index = ch - '0';

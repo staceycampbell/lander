@@ -68,6 +68,18 @@ ScDisplayErr(WINDOW *back_win, char *str)
 	wrefresh(back_win);
 }
 
+static void
+PressSpace(WINDOW *back_win, WINDOW *cur_win, int y, int x, int sy, int sx)
+{
+	mvwaddstr(cur_win, sy, sx, "--press space--");
+	wrefresh(cur_win);
+	while (wgetch(cur_win) != ' ');
+	delwin(cur_win);
+	wmove(back_win, y, x);
+	touchwin(back_win);
+	wrefresh(back_win);
+}
+
 void
 ScReadDisplay(WINDOW *back_win)
 {
@@ -92,7 +104,7 @@ ScReadDisplay(WINDOW *back_win)
 	if (items == 0)
 	{
 		mvwaddstr(score_win, 5, 1, "HS file empty.");
-		PressSpace(back_win, old_y, old_x, score_win, SPC_LINE, 1);
+		PressSpace(back_win, score_win, old_y, old_x, SPC_LINE, 1);
 		return;
 	}
 	mvwaddstr(score_win, 1, (25 - sizeof(HEADER)) / 2, HEADER);
@@ -102,7 +114,7 @@ ScReadDisplay(WINDOW *back_win)
 		wmove(score_win, 3 + i, 1);
 		wprintw(score_win, "%4d %s", score_pad[i].score, score_pad[i].name);
 	}
-	PressSpace(back_win, old_y, old_x, score_win, SPC_LINE, 1);
+	PressSpace(back_win, score_win, old_y, old_x, SPC_LINE, 1);
 }
 
 void
@@ -153,18 +165,6 @@ ScWrite(WINDOW *back_win)
 	if (fwrite((char *)score_pad, sizeof(score_t), items, fp) == 0)
 		ScDisplayErr(back_win, "No HS entries written.");
 	fclose(fp);
-}
-
-void
-PressSpace(WINDOW *back_win, WINDOW *cur_win, int y, int x, int sy, int sx)
-{
-	mvwaddstr(cur_win, sy, sx, "--press space--");
-	wrefresh(cur_win);
-	while (wgetch(cur_win) != ' ');
-	delwin(cur_win);
-	wmove(back_win, y, x);
-	touchwin(back_win);
-	wrefresh(back_win);
 }
 
 void

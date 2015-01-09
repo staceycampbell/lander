@@ -16,43 +16,8 @@ extern int LastLegalY, LastLegalX;
 extern int Score, BestScore;
 extern double FuelDec;
 
-static void EndCurses();
-static void StartLander();
-static int FlyLander();
-static int CleanUp();
-static void Explode();
-
 int Landings;
 int BSLandings = 0;
-
-int
-main(int argc, char *argv[])
-{
-	double init_dy;		/* initial rate of fall per landing */
-	double init_dx;		/* initial horizontal velocity per landing */
-	WINDOW *screen;		/* main display curses window */
-	int LanderStatus;	/* status of lander at end of landing */
-
-	InitialiseScreen(&screen);	/* do basic screen init */
-	InitScore();
-	do
-	{
-		/* init screen and lander for game */
-		StartLander(&init_dy, &init_dx);
-		do
-		{
-			InitMoves(screen);	/* init lander for one landing */
-			DrawScreen(screen);	/* init screen for one landing */
-			LanderStatus = FlyLander(screen, init_dy, init_dx);
-			init_dy -= INIT_DY_INC;	/* make landing harder */
-			init_dx += INIT_DX_INC;
-		}
-		while (LanderStatus == LANDED);	/* until crash */
-	}
-	while (CleanUp(screen));	/* while user wants another game */
-	EndCurses(screen);	/* final screen cleanup */
-	return 0;
-}
 
 /*
 ** StartLander() - initialise a new game.
@@ -111,61 +76,6 @@ CleanUp(WINDOW *screen)
 	return ch == 'Y' || ch == 'y' || ch == ' ';
 }
 
-static int
-FlyLander(WINDOW *screen, double y_move, double x_move)
-{
-	int land_stat;
-	double altitude = ALTITUDE_INIT;
-	double longditude = 0.0;
-
-	for (land_stat = FLYING; land_stat == FLYING;)
-	{
-		sleep(1);
-		GetMove(screen, &y_move, &x_move);
-		land_stat = MoveLander(screen, altitude, longditude);
-		switch (land_stat)
-		{
-		case FLYING:
-			y_move -= GRAVITY;
-			altitude += y_move;
-			if (altitude < 0.0)
-				altitude = 0.0;
-			longditude += x_move;
-			break;
-		case LANDED:
-			if (y_move < -(ACCEPTABLE))
-			{
-				Explode(screen, LastLegalY, LastLegalX);
-				land_stat = CRASH;
-			}
-			else
-				UpdateScore(screen);
-			break;
-		case CRASH:
-			Explode(screen, LastLegalY, LastLegalX);
-			break;
-		}
-		wmove(screen, 0, 0);
-		wclrtoeol(screen);
-		wprintw(screen, "alt: %8.3f X: %8.2f dY: %7.3f dX: %7.3f Score: %5d", altitude, longditude, y_move, x_move, Score);
-		wrefresh(screen);
-	}
-	if (land_stat == LANDED)
-	{
-		++Landings;
-		nodelay(screen, FALSE);
-		wmove(screen, 1, 0);
-		wprintw(screen, "--Safe Landing Number: %d", Landings);
-		waddstr(screen, " - press space bar--");
-#ifdef BSD
-		wrefresh(screen);
-#endif
-		while (wgetch(screen) != ' ');
-		nodelay(screen, TRUE);
-	}
-	return land_stat;
-}
-
 #define SEQ_COUNT (sizeof(sequenceA) / sizeof(sequenceA[0]))
 #define AVERAGE 9
 #define DEVIATION 4
@@ -178,11 +88,7 @@ Explode(WINDOW *screen, int Y_bang, int X_bang)
 {
 	int particles, i, new_y, new_x, draw_y, draw_x, touched, toy, tox;
 	int overlay[SCR_Y][SCR_X];
-#ifdef BSD
-	int old_chs[SCR_Y][SCR_X];
-#else
 	chtype old_chs[SCR_Y][SCR_X];
-#endif
 	double x_inc;
 	struct paths_t
 	{
@@ -249,9 +155,7 @@ Explode(WINDOW *screen, int Y_bang, int X_bang)
 			}
 			if (touched)
 			{
-#ifdef SYS5_3
 				flushinp();
-#endif
 				wrefresh(screen);
 			}
 			path->old_y = draw_y;
@@ -269,26 +173,84 @@ Explode(WINDOW *screen, int Y_bang, int X_bang)
 	wrefresh(screen);
 }
 
-#if defined(RAND_BSD)
-static long
-lrand48(void)
+static int
+FlyLander(WINDOW *screen, double y_move, double x_move)
 {
-	long random();
+	int land_stat;
+	double altitude = ALTITUDE_INIT;
+	double longditude = 0.0;
 
-	return random();
+	for (land_stat = FLYING; land_stat == FLYING;)
+	{
+		sleep(1);
+		GetMove(screen, &y_move, &x_move);
+		land_stat = MoveLander(screen, altitude, longditude);
+		switch (land_stat)
+		{
+		case FLYING:
+			y_move -= GRAVITY;
+			altitude += y_move;
+			if (altitude < 0.0)
+				altitude = 0.0;
+			longditude += x_move;
+			break;
+		case LANDED:
+			if (y_move < -(ACCEPTABLE))
+			{
+				Explode(screen, LastLegalY, LastLegalX);
+				land_stat = CRASH;
+			}
+			else
+				UpdateScore(screen);
+			break;
+		case CRASH:
+			Explode(screen, LastLegalY, LastLegalX);
+			break;
+		}
+		wmove(screen, 0, 0);
+		wclrtoeol(screen);
+		wprintw(screen, "alt: %8.3f X: %8.2f dY: %7.3f dX: %7.3f Score: %5d", altitude, longditude, y_move, x_move, Score);
+		wrefresh(screen);
+	}
+	if (land_stat == LANDED)
+	{
+		++Landings;
+		nodelay(screen, FALSE);
+		wmove(screen, 1, 0);
+		wprintw(screen, "--Safe Landing Number: %d", Landings);
+		waddstr(screen, " - press space bar--");
+		while (wgetch(screen) != ' ');
+		nodelay(screen, TRUE);
+	}
+	return land_stat;
 }
 
-static void
-srand48(long seed)
+int
+main(int argc, char *argv[])
 {
-	srandom((int)seed);
+	double init_dy;		/* initial rate of fall per landing */
+	double init_dx;		/* initial horizontal velocity per landing */
+	WINDOW *screen;		/* main display curses window */
+	int LanderStatus;	/* status of lander at end of landing */
+
+	InitialiseScreen(&screen);	/* do basic screen init */
+	InitScore();
+	do
+	{
+		/* init screen and lander for game */
+		StartLander(&init_dy, &init_dx);
+		do
+		{
+			InitMoves(screen);	/* init lander for one landing */
+			DrawScreen(screen);	/* init screen for one landing */
+			LanderStatus = FlyLander(screen, init_dy, init_dx);
+			init_dy -= INIT_DY_INC;	/* make landing harder */
+			init_dx += INIT_DX_INC;
+		}
+		while (LanderStatus == LANDED);	/* until crash */
+	}
+	while (CleanUp(screen));	/* while user wants another game */
+	EndCurses(screen);	/* final screen cleanup */
+	return 0;
 }
 
-#define PERIOD (4096 - 1)
-
-static double
-drand48(void)
-{
-	return random() % PERIOD / (double)PERIOD;
-}
-#endif
