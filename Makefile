@@ -34,6 +34,9 @@ lander: $(OBJS)
 
 $(OBJS): consts.h
 
+clean:
+	rm -f $(OBJS) lander
+
 shar:
 	xshar README lander.6 Makefile $(SRC) $(INC) > lander.shar
 

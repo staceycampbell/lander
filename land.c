@@ -13,11 +13,11 @@ extern int LastLegalY, LastLegalX;
 extern int Score, BestScore;
 extern double FuelDec;
 
-void EndCurses();
-void StartLander();
-int FlyLander();
-int CleanUp();
-void Explode();
+static void EndCurses();
+static void StartLander();
+static int FlyLander();
+static int CleanUp();
+static void Explode();
 
 int Landings;
 int BSLandings = 0;

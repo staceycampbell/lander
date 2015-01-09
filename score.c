@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <curses.h>
+#include <string.h>
 #include "consts.h"
 #include "funcs.h"
 
@@ -32,8 +33,8 @@ int BestScore = 0;
 static char *HSFile = HS_FILE;
 static int TotalPads;
 
-void ScDisplayErr();
-int ScCmp();
+static void ScDisplayErr();
+static int ScCmp();
 
 void ScReadDisplay(back_win)
 
