@@ -1,0 +1,21 @@
+This is a C implementation of the old ``lunar lander''
+game seen in amusement arcades in the mid-seventies.
+
+This version has been ported to various System 5.3
+systems, namely 386/ix and HCR's port of System 5.3 to
+a VAX.  It has also been ported to a version of BSD.
+
+Lander utilises some of the nifty SysV.3 curses capabilities
+such as line drawing.  Anyone using an ANSI compatible
+terminal should see the full effect.  Assorted Visual
+terminals will give the same results with a decent terminfo
+file.  BSD people are stuck with their implementation
+of curses, but it still looks kind of okay.
+
+Lander uses a high score file that is writable by
+all users running the program, please edit the Makefile to
+ensure a valid name is used.  Lander will attempt to
+create the HS file the first time the game is run and
+a successful landing is completed.
+
+Please read the copyright info at the bottom of the man page.

@@ -1,0 +1,144 @@
+#! /bin/sh
+#Path: uunet!zephyr!tektronix!tekgen!tekred!saab!billr
+#From: billr@saab.CNA.TEK.COM (Bill Randle)
+#Newsgroups: comp.sources.games
+#Subject: v06i078:  lander - lunar lander simulation for BSD and SysV, Patch1
+#Message-ID: <4122@tekred.CNA.TEK.COM>
+#Date: 21 Jun 89 13:28:43 GMT
+#Sender: news@tekred.CNA.TEK.COM
+#Lines: 134
+#Approved: billr@saab.CNA.TEK.COM
+#
+#Submitted-by: stacey@hcr.UUCP (Stacey Campbell)
+#Posting-number: Volume 6, Issue 78
+#Archive-name: lander.pch1
+#Patch-To: Volume 6, Issue 70
+#
+#	[This was previously posted on comp.sources.games.bugs. I am posting
+#	 it here so that it will get archived.  Note that this is *not* a
+#	 patch(1) file. Do not feed it to patch.  -br]
+#
+# This is a shell archive.  Remove anything before this line, then unpack
+# it by saving it into a file and typing "sh file".  To overwrite existing
+# files, type "sh file -c".  You can also feed this as standard input via
+# unshar, or by typing "sh <file", e.g..  If this archive is complete, you
+# will see the following message at the end:
+#		"End of shell archive."
+# Contents:  patches01
+# Wrapped by billr@saab on Wed Jun 21 06:25:49 1989
+PATH=/bin:/usr/bin:/usr/ucb ; export PATH
+if test -f 'patches01' -a "${1}" != "-c" ; then 
+  echo shar: Will not clobber existing file \"'patches01'\"
+else
+echo shar: Extracting \"'patches01'\" \(3145 characters\)
+sed "s/^X//" >'patches01' <<'END_OF_FILE'
+XA number of people have asked some questions about Lunar Lander,
+Xa number of other people (usually compiling on BSD) have sent some
+Xpatches to deal with curses(3X) routines that are not in their version
+Xof BSD curses.  Here is a compilation of info these people offered/required.
+X
+XControlling the Lander
+X----------------------
+X
+XThe lander is fitted with three rockets;
+X
+X          /~\
+X          | |
+X   left  -+++-  right
+X           |
+X      vert. thrust
+X
+XPress keys '0' - '9' to set the default power level,
+Xwhere '0' == no power and '9' == full power.
+X
+XPressing 'z' sets the power output of the left rocket
+Xto the default, this has the effect of pushing the lander
+Xto the right (if the default power level is > 0).
+X
+XPressing 'c' sets the power output of the right rocket
+Xto the default, this has the effect of pushing the lander
+Xto the left.
+X
+XPressing 'x' sets the vertical thrust of the middle rocket
+Xto the default level, if this is non zero it will slow the
+Xrate of descent of the lander.  If it sets it to zero the
+Xlander will drop like a brick!
+X
+XWhat's on the Screen
+X--------------------
+X
+XThe top of the screen reads;
+X
+Xalt:  X:  dY:  dX:  Score:
+X
+X'alt' 	- is the current altitude from "sea level" in metres
+X'X' 	- is how far you have moved horizontally (in meters)
+X'dY' 	- is your rate of change of vertical movement, (e.g. -10.0
+X	  means you fell 10 meters in the previous second)
+X'dX'	- is your rate of change of horizonal movement, (e.g. -10.0
+X	  means you moved left 10 metres in the previous second)
+X'Score'	- is your current score.
+X
+XAt the bottom of the screen;
+X
+XThrust - L:  vert:  R:  pow:  Fuel:
+X
+X'L'	- is thrust from the left rocket (pushes you to the right)
+X'R'	- is thrust from the right rocket (pushes you to the left)
+X	  Both 'L' and 'R' alter the 'dX' value.
+X'vert'	- is thrust from the vertical rocket (slows the lander's
+X	  rate of descent i.e. alters 'dY')
+X'pow'	- is the default power setting that will be used when you
+X	  press 'z', 'x' or 'c'
+X'Fuel'	- the amount of fuel left, when this reaches zero all thrust
+X	  from rockets ceases.
+X
+XThe two rules for landing are;
+X	1. Try to get dY >= -5 metres per second, anything faster
+X	   than -5 will cause the lander to explode.
+X	2. Make sure you are landing on a pad.
+X
+XSome BSD Patches
+X----------------
+X
+XGordon Vickers offered the following for Ultrix people (thanks)...
+X
+XTo deal with crmode() not being supported;
+X
+X     File: screen.c
+X     Function: InitialiseScreen()
+X     Change: Added another #ifdef BSD
+X                 initscr();
+X                 noecho();
+X  |      #ifdef BSD
+X  |              crmode();
+X  |      #else
+X                 cbreak();
+X  |      #endif
+X                 *init_scr = stdscr
+X
+X     Each of the above lines that start with a pipe ("|") represent lines
+X     that I've inserted. No lines were deleted.
+X
+XTo deal with endwin() leaving the cursor at to top of the screen;
+X
+X      File: land.c
+X      Function: EndCurses()
+X      Change:
+X              while(wgetch(screen) != ' ');
+X        |     clear();
+X        |     refresh();
+X              endwin();
+X
+XHope this has been of some help.
+X-- 
+XStacey Campbell, HCR Corporation, {lsuc,utzoo,utcsri}!hcr!stacey
+X
+END_OF_FILE
+if test 3145 -ne `wc -c <'patches01'`; then
+    echo shar: \"'patches01'\" unpacked with wrong size!
+fi
+# end of 'patches01'
+fi
+echo shar: End of shell archive.
+exit 0
