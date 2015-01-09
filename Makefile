@@ -19,15 +19,15 @@ RAND_L=RAND_SYS5
 # RAND_L=RAND_SYS5
 
 # high score file name - change for your system
-HSFILE= /usr/games/lib/lander.hs
+HSFILE= /usr/local/games/lib/lander.hs
 
 OBJS= land.o screen.o move.o score.o
 SRC= land.c screen.c move.c score.c
 INC= consts.h funcs.h
-BIN= $(HOME)/bin
-OPT= -g
+BIN= /usr/local/bin
+OPT= -O2
 HSSTRING='"$(HSFILE)"'
-CFLAGS= $(OPT) -D$(RAND_L) -DHS_FILE=$(HSSTRING) -D$(OSV)
+CFLAGS= -Wall $(OPT) -D$(RAND_L) -DHS_FILE=$(HSSTRING) -D$(OSV)
 
 lander: $(OBJS)
 	cc -o lander $(CFLAGS) $(OBJS) $(LIBS)
@@ -44,5 +44,6 @@ lint:
 	lint $(CFLAGS) $(SRC)
 
 install: lander
-	rm -f $(BIN)/lander
-	cp lander $(BIN)
+	sudo rm -f $(BIN)/lander
+	sudo cp lander $(BIN)
+	sudo chown stacey $(BIN)/lander

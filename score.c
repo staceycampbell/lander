@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <curses.h>
 #include <string.h>
+#include <unistd.h>
+#include <fcntl.h>
 #include "consts.h"
 #include "funcs.h"
 
@@ -10,15 +12,17 @@
 #define SC_WIN_LEN 16
 #define SPC_LINE (SC_WIN_LEN - 2)
 
-typedef struct score_pad_t {
+typedef struct score_pad_t
+{
 	int y;
 	int start_x;
 	int end_x;
-	} score_pad_t;
-typedef struct score_t {
+} score_pad_t;
+typedef struct score_t
+{
 	int score;
 	char name[NAME_LEN];
-	} score_t;
+} score_t;
 
 extern double Fuel;
 extern int PadScore[];
@@ -33,135 +37,19 @@ int BestScore = 0;
 static char *HSFile = HS_FILE;
 static int TotalPads;
 
-static void ScDisplayErr();
-static int ScCmp();
-
-void ScReadDisplay(back_win)
-
-WINDOW *back_win;
-
-	{
-	int old_y, old_x, items, i;
-	WINDOW *score_win;
-	FILE *fp;
-	score_t score_pad[HS_ENTRIES];
-
-	if ((fp = fopen(HSFile, "r")) == NULL)
-		{
-		ScDisplayErr(back_win, "Unable to display HS file.");
-		return;
-		}
-	getyx(back_win, old_y, old_x);
-	wmove(back_win, 0, 0);
-	wrefresh(back_win);
-	score_win = newwin(SC_WIN_LEN, 25, 2, 5);
-	werase(score_win);
-	box(score_win, 0, 0);
-	items = fread((char *)score_pad, sizeof(score_t), HS_ENTRIES, fp);
-	fclose(fp);
-	if (items == 0)
-		{
-		mvwaddstr(score_win, 5, 1, "HS file empty.");
-		PressSpace(back_win, old_y, old_x, score_win, SPC_LINE, 1);
-		return;
-		}
-	mvwaddstr(score_win, 1, (25 - sizeof(HEADER)) / 2, HEADER);
-	wrefresh(score_win);
-	for (i = 0; i < items; ++i)
-		{
-		wmove(score_win, 3 + i, 1);
-		wprintw(score_win, "%4d %s", score_pad[i].score,
-		    score_pad[i].name);
-		}
-	PressSpace(back_win, old_y, old_x, score_win, SPC_LINE, 1);
-	}
-
-void ScWrite(back_win)
-
-WINDOW *back_win;
-
-	{
-	int items;
-	FILE *fp;
-	char *user;
-	score_t score_pad[HS_ENTRIES + 1];
-	void qsort();
-	char *getenv();
-
-	if (Score == 0)
-		return;
-	if ((fp = fopen(HSFile, "r")) == NULL)
-		{
-		ScDisplayErr(back_win, "Unable to read HS file.");
-		ScDisplayErr(back_win, "Attempting to create HS file.");
-		if (creat(HSFile, 0777) == -1)
-			{
-			ScDisplayErr(back_win,
-			    "Unable to create HS file, check pathname.");
-			return;
-			}
-		}
-	if ((fp = fopen(HSFile, "r")) == NULL)
-		{
-		ScDisplayErr(back_win, "Unable to read new HS file.");
-		return;
-		}
-	items = fread((char *)score_pad, sizeof(score_t), HS_ENTRIES, fp);
-	fclose(fp);
-	if ((user = getenv("LOGNAME")) == NULL)
-		{
-		ScDisplayErr(back_win, "Environment var LOGNAME must be set");
-		return;
-		}
-	strcpy(score_pad[items].name, user);
-	score_pad[items].score = Score;
-	++items;
-	qsort((char *)score_pad, items, sizeof(score_t), ScCmp);
-	if (items > HS_ENTRIES)
-		items = HS_ENTRIES;
-	if ((fp = fopen(HSFile, "w")) == NULL)
-		{
-		ScDisplayErr(back_win, "Unable to write HS file.");
-		return;
-		}
-	if (fwrite((char *)score_pad, sizeof(score_t), items, fp) == 0)
-		ScDisplayErr(back_win, "No HS entries written.");
-	fclose(fp);
-	}
-
-static int ScCmp(sc_rec1, sc_rec2)
-
-score_t *sc_rec1, *sc_rec2;
-
-	{
+static int
+ScCmp(score_t *sc_rec1, score_t *sc_rec2)
+{
 	if (sc_rec1->score < sc_rec2->score)
 		return 1;
 	if (sc_rec1->score > sc_rec2->score)
 		return -1;
 	return 0;
-	}
+}
 
-void PressSpace(back_win, y, x, cur_win, sy, sx)
-
-WINDOW *back_win, *cur_win;
-int y, x, sy, sx;
-
-	{
-	mvwaddstr(cur_win, sy, sx, "--press space--");
-	wrefresh(cur_win);
-	while (wgetch(cur_win) != ' ');
-	delwin(cur_win);
-	wmove(back_win, y, x);
-	touchwin(back_win);
-	wrefresh(back_win);
-	}
-
-static void ScDisplayErr(back_win, str)
-
-WINDOW *back_win;
-char *str;
-
-	{
+static void
+ScDisplayErr(WINDOW *back_win, char *str)
+{
 	int old_y, old_x, win_len;
 	WINDOW *err_win;
 
@@ -178,23 +66,118 @@ char *str;
 	wmove(back_win, old_y, old_x);
 	touchwin(back_win);
 	wrefresh(back_win);
-	}
+}
 
-void UpdateScore(screen)
+void
+ScReadDisplay(WINDOW *back_win)
+{
+	int old_y, old_x, items, i;
+	WINDOW *score_win;
+	FILE *fp;
+	score_t score_pad[HS_ENTRIES];
 
-WINDOW *screen;
-
+	if ((fp = fopen(HSFile, "r")) == NULL)
 	{
+		ScDisplayErr(back_win, "Unable to display HS file.");
+		return;
+	}
+	getyx(back_win, old_y, old_x);
+	wmove(back_win, 0, 0);
+	wrefresh(back_win);
+	score_win = newwin(SC_WIN_LEN, 25, 2, 5);
+	werase(score_win);
+	box(score_win, 0, 0);
+	items = fread((char *)score_pad, sizeof(score_t), HS_ENTRIES, fp);
+	fclose(fp);
+	if (items == 0)
+	{
+		mvwaddstr(score_win, 5, 1, "HS file empty.");
+		PressSpace(back_win, old_y, old_x, score_win, SPC_LINE, 1);
+		return;
+	}
+	mvwaddstr(score_win, 1, (25 - sizeof(HEADER)) / 2, HEADER);
+	wrefresh(score_win);
+	for (i = 0; i < items; ++i)
+	{
+		wmove(score_win, 3 + i, 1);
+		wprintw(score_win, "%4d %s", score_pad[i].score, score_pad[i].name);
+	}
+	PressSpace(back_win, old_y, old_x, score_win, SPC_LINE, 1);
+}
+
+void
+ScWrite(WINDOW *back_win)
+{
+	int items;
+	FILE *fp;
+	char *user;
+	score_t score_pad[HS_ENTRIES + 1];
+	void qsort();
+	char *getenv();
+
+	if (Score == 0)
+		return;
+	if ((fp = fopen(HSFile, "r")) == NULL)
+	{
+		ScDisplayErr(back_win, "Unable to read HS file.");
+		ScDisplayErr(back_win, "Attempting to create HS file.");
+		if (creat(HSFile, 0777) == -1)
+		{
+			ScDisplayErr(back_win, "Unable to create HS file, check pathname.");
+			return;
+		}
+	}
+	if ((fp = fopen(HSFile, "r")) == NULL)
+	{
+		ScDisplayErr(back_win, "Unable to read new HS file.");
+		return;
+	}
+	items = fread((char *)score_pad, sizeof(score_t), HS_ENTRIES, fp);
+	fclose(fp);
+	if ((user = getenv("LOGNAME")) == NULL)
+	{
+		ScDisplayErr(back_win, "Environment var LOGNAME must be set");
+		return;
+	}
+	strcpy(score_pad[items].name, user);
+	score_pad[items].score = Score;
+	++items;
+	qsort((char *)score_pad, items, sizeof(score_t), ScCmp);
+	if (items > HS_ENTRIES)
+		items = HS_ENTRIES;
+	if ((fp = fopen(HSFile, "w")) == NULL)
+	{
+		ScDisplayErr(back_win, "Unable to write HS file.");
+		return;
+	}
+	if (fwrite((char *)score_pad, sizeof(score_t), items, fp) == 0)
+		ScDisplayErr(back_win, "No HS entries written.");
+	fclose(fp);
+}
+
+void
+PressSpace(WINDOW *back_win, WINDOW *cur_win, int y, int x, int sy, int sx)
+{
+	mvwaddstr(cur_win, sy, sx, "--press space--");
+	wrefresh(cur_win);
+	while (wgetch(cur_win) != ' ');
+	delwin(cur_win);
+	wmove(back_win, y, x);
+	touchwin(back_win);
+	wrefresh(back_win);
+}
+
+void
+UpdateScore(WINDOW *screen)
+{
 	int pad_i = 0, found = 0, fuel_bonus, diff_bonus;
 	char scr_buf[128];
 
-	while (pad_i < SCR_X && ! found)
-		{
-		found = LastLegalX >= ScorePad[pad_i].start_x &&
-			LastLegalX <= ScorePad[pad_i].end_x &&
-			ScorePad[pad_i].y == LastLegalY;
+	while (pad_i < SCR_X && !found)
+	{
+		found = LastLegalX >= ScorePad[pad_i].start_x && LastLegalX <= ScorePad[pad_i].end_x && ScorePad[pad_i].y == LastLegalY;
 		++pad_i;
-		}
+	}
 	--pad_i;
 	fuel_bonus = Fuel / 100.0 + 0.5;
 	sprintf(scr_buf, "Fuel bonus: %d", fuel_bonus);
@@ -205,22 +188,22 @@ WINDOW *screen;
 	mvwaddstr(screen, 4, 9, scr_buf);
 	wrefresh(screen);
 	Score += PadScore[pad_i] + fuel_bonus + diff_bonus;
-	}
+}
 
-void InitScore()
-
-	{
+void
+InitScore(void)
+{
 	int i, j, pad_count = 0;
 	char *line;
 
 	for (i = 0; i < SCR_Y; ++i)
-		{
+	{
 		j = 0;
 		line = Template[i];
 		while (j < SCR_X)
-			{
+		{
 			if (line[j] == PAD)
-				{
+			{
 				ScorePad[pad_count].y = i;
 				ScorePad[pad_count].start_x = j;
 				while (j < SCR_X && line[j] == PAD)
@@ -229,9 +212,9 @@ void InitScore()
 					--j;
 				ScorePad[pad_count].end_x = j;
 				++pad_count;
-				}
-			++j;
 			}
+			++j;
 		}
-	TotalPads = pad_count;
 	}
+	TotalPads = pad_count;
+}
