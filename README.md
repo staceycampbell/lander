@@ -1,13 +1,15 @@
-# History (modified from the original README) #
+# Lunar Lander #
 
 This is a C implementation of the old
 ["lunar lander"](https://en.wikipedia.org/wiki/Lunar_Lander_(1979_video_game))
-game seen in amusement arcades in the seventies. I wrote this in 1989 while
-working for a legendary Unix house in Toronto called
-[HCR](https://en.wikipedia.org/wiki/HCR_Corporation).
+game seen in amusement arcades in the seventies.
 
-Former versions were ported to various System 5.3 systems, namely 386/ix and
-HCR's port of System 5.3 to a VAX.  It has also been ported to a version of BSD.
+## History (modified from the original README) ##
+
+I wrote this in 1989 while working for legendary Toronto Unix house
+[HCR](https://en.wikipedia.org/wiki/HCR_Corporation). Former versions were
+ported to various System 5.3 systems, namely 386/ix and HCR's port of
+System 5.3 to a VAX.  It has also been ported to a version of BSD.
 
 Lander utilizes some of the nifty SysV.3 curses capabilities such as line
 drawing.  Anyone using an [ANSI compatible terminal](https://en.wikipedia.org/wiki/ANSI_escape_code)
