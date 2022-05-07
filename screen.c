@@ -20,7 +20,7 @@
 	ALT_ADD(screen, y, x, ch); \
 	wstandend(screen);
 
-char *Template[] = {
+const char *Template[] = {
 	"                                                                            ",
 	".                                                                          /",
 	"<                                                                        /v+",
@@ -45,7 +45,7 @@ char *Template[] = {
 	"++++++++++++++++++++++++++++++++++++vv25vv++++++++++++++++++++++++++++++++++"
 };
 
-int PadScore[MAX_PADS] = { 30, 30, 15, 20, 50, 10, 15, 25 };
+const int PadScore[MAX_PADS] = {30, 30, 15, 20, 50, 10, 15, 25};
 
 int LastLegalY, LastLegalX;
 
@@ -146,7 +146,8 @@ DrawScreen(WINDOW *screen)
 {
 	register int i, j, scr_i;
 	chtype_port_t map;
-	char *line, ch;
+	const char *line;
+	char ch;
 
 	werase(screen);
 	for (i = 0; i < SCR_Y; ++i)

@@ -16,7 +16,7 @@ double Fuel;
 double FuelDec = 0.0;
 
 static double Power;
-static double PowerSet[] = { 0.0, 0.01, 0.1, 0.5, 1.0, 2.0, 5.0, 10.0, 15.0, 20.0 };
+static const double PowerSet[] = {0.0, 0.01, 0.1, 0.5, 1.0, 2.0, 5.0, 10.0, 15.0, 20.0};
 
 static double att1p, att2p, att3p;
 

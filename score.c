@@ -3,6 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <stdlib.h>
 #include "consts.h"
 #include "funcs.h"
 
@@ -25,9 +26,9 @@ typedef struct score_t
 } score_t;
 
 extern double Fuel;
-extern int PadScore[];
+extern const int PadScore[];
 extern int BSLandings, Landings;
-extern char *Template[];
+extern const char *Template[];
 extern int LastLegalY, LastLegalX;
 
 score_pad_t ScorePad[MAX_PADS];
@@ -38,8 +39,11 @@ static char *HSFile = HS_FILE;
 static int TotalPads;
 
 static int
-ScCmp(score_t *sc_rec1, score_t *sc_rec2)
+ScCmp(const void *arg1, const void *arg2)
 {
+	const score_t *sc_rec1 = arg1;
+	const score_t *sc_rec2 = arg2;
+	
 	if (sc_rec1->score < sc_rec2->score)
 		return 1;
 	if (sc_rec1->score > sc_rec2->score)
@@ -124,8 +128,6 @@ ScWrite(WINDOW *back_win)
 	FILE *fp;
 	char *user;
 	score_t score_pad[HS_ENTRIES + 1];
-	void qsort();
-	char *getenv();
 
 	if (Score == 0)
 		return;
@@ -194,7 +196,7 @@ void
 InitScore(void)
 {
 	int i, j, pad_count = 0;
-	char *line;
+	const char *line;
 
 	for (i = 0; i < SCR_Y; ++i)
 	{

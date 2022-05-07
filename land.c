@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <time.h>
 #include "consts.h"
 #include "funcs.h"
 
@@ -80,8 +81,8 @@ CleanUp(WINDOW *screen)
 #define AVERAGE 9
 #define DEVIATION 4
 #define MAX_PARTS (AVERAGE + DEVIATION)
-static char sequenceA[] = { '-', '/', '|', '\\' };
-static char sequenceB[] = { '-', '\\', '|', '/' };
+static const char sequenceA[] = { '-', '/', '|', '\\' };
+static const char sequenceB[] = { '-', '\\', '|', '/' };
 
 static void
 Explode(WINDOW *screen, int Y_bang, int X_bang)
@@ -98,12 +99,9 @@ Explode(WINDOW *screen, int Y_bang, int X_bang)
 		int old_y;
 		int old_x;
 		int seq_no;
-		char *sequence;
+		const char *sequence;
 	} paths[MAX_PARTS];
 	struct paths_t *path;
-	long lrand48(), time();
-	double drand48();
-	void srand48();
 
 	wstandout(screen);
 	mvwaddch(screen, SCR_ADJ(Y_bang), X_bang, '*');
@@ -117,8 +115,8 @@ Explode(WINDOW *screen, int Y_bang, int X_bang)
 	{
 		path = &paths[i];
 		path->x = 0.0;
-		path->x_mult = drand48() * (double)SCR_X *0.2;
-		path->y_mult = drand48() * (double)SCR_Y *1.1 + 5.0;
+		path->x_mult = drand48() * (double)SCR_X * 0.2;
+		path->y_mult = drand48() * (double)SCR_Y * 1.1 + 5.0;
 		path->old_y = -1;
 		path->old_x = -1;
 		path->seq_no = lrand48() % SEQ_COUNT;
@@ -126,6 +124,7 @@ Explode(WINDOW *screen, int Y_bang, int X_bang)
 		flash();
 	}
 	while (paths[0].x < M_PI)
+	{
 		for (i = 0; i < particles; ++i)
 		{
 			touched = 0;
@@ -162,6 +161,8 @@ Explode(WINDOW *screen, int Y_bang, int X_bang)
 			path->old_x = draw_x;
 			path->x += x_inc;
 		}
+		usleep(20 * 1000); /* Added in 2022. In 1989 the sin() call above achieved the same result. */
+	}
 	for (i = 0; i < particles; ++i)
 	{
 		path = &paths[i];
@@ -253,4 +254,3 @@ main(int argc, char *argv[])
 	EndCurses(screen);	/* final screen cleanup */
 	return 0;
 }
-
