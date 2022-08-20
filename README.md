@@ -63,8 +63,8 @@ Pressing 'c' sets the power output of the right rocket to the default, this has
 the effect of pushing the lander to the left.
 
 Pressing 'x' sets the vertical thrust of the middle rocket to the default level,
-if this is non zero it will slow the rate of descent of the lander.  If it sets
-it to zero the lander will drop like a brick!
+if this is non zero it will slow the rate of descent of the lander.  If it is
+set to zero the lander will drop like a brick!
 
 ## What's on the Screen ##
 
